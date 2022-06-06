@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Properties;
 
 import com.amazonaws.samples.kinesis2timestream.kinesis.RoundRobinKinesisShardAssigner;
-import com.amazonaws.samples.kinesis2timestream.model.MyHostBase;
+import com.amazonaws.samples.kinesis2timestream.model.IotDataBase;
 import com.amazonaws.samples.kinesis2timestream.model.TimestreamRecordConverter;
 import com.amazonaws.samples.kinesis2timestream.utils.ParameterToolUtils;
 import com.amazonaws.samples.kinesis2timestream.model.TimestreamRecordDeserializer;
@@ -63,7 +63,7 @@ public class StreamingJob {
 	private static final String DEFAULT_STREAM_NAME = "TimestreamTestStream";
 	private static final String DEFAULT_REGION_NAME = "us-east-1";
 
-	public static DataStream<MyHostBase> createKinesisSource(StreamExecutionEnvironment env, ParameterTool parameter) throws Exception {
+	public static DataStream<IotDataBase> createKinesisSource(StreamExecutionEnvironment env, ParameterTool parameter) throws Exception {
 
 		//set Kinesis consumer properties
 		Properties kinesisConsumerConfig = new Properties();
@@ -87,7 +87,7 @@ public class StreamingJob {
 		}
 
 		//create Kinesis source
-		FlinkKinesisConsumer<MyHostBase> flinkKinesisConsumer = new FlinkKinesisConsumer<>(
+		FlinkKinesisConsumer<IotDataBase> flinkKinesisConsumer = new FlinkKinesisConsumer<>(
 				//read events from the Kinesis stream passed in as a parameter
 				parameter.get("InputStreamName", DEFAULT_STREAM_NAME),
 				//deserialize events with EventSchema
@@ -108,7 +108,7 @@ public class StreamingJob {
 		// set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		DataStream<MyHostBase> mappedInput = createKinesisSource(env, parameter);
+		DataStream<IotDataBase> mappedInput = createKinesisSource(env, parameter);
 
 		String region = parameter.get("Region", "us-east-1");
 		String databaseName = parameter.get("TimestreamDbName", "kdaflink");
@@ -126,7 +126,7 @@ public class StreamingJob {
 		timestreamInitializer.createDatabase(databaseName);
 		timestreamInitializer.createTable(databaseName, tableName, memoryStoreTTLHours, magneticStoreTTLDays);
 
-		TimestreamSink<MyHostBase> sink = new TimestreamSink<>(
+		TimestreamSink<IotDataBase> sink = new TimestreamSink<>(
 				(recordObject, context) -> {
 					return TimestreamRecordConverter.convert(recordObject);
 				},
